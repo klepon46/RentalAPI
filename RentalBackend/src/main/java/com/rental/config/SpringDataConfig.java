@@ -6,9 +6,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -16,20 +14,15 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
-@org.springframework.context.annotation.Configuration
-@EnableWebMvc
-@EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "com.rental.repository")
-@ComponentScan(basePackages = "com.rental")
-public class Configuration {
+
+public class SpringDataConfig {
 
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+
 		em.setDataSource(dataSource());
 		em.setPackagesToScan("com.rental.model");
 		em.setJpaVendorAdapter(vendorAdapter);
@@ -46,7 +39,7 @@ public class Configuration {
 		datasource.setUsername("root");
 		datasource.setPassword("ahmids");
 
-		return datasource;
+		return dataSource();
 	}
 
 	@Bean
@@ -58,14 +51,9 @@ public class Configuration {
 		return transactionManager;
 	}
 
-	@Bean
-	public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
-		return new PersistenceExceptionTranslationPostProcessor();
-	}
-
-	Properties additionalProperties() {
+	private Properties additionalProperties() {
 		Properties properties = new Properties();
-		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
 
 		return properties;
 	}
