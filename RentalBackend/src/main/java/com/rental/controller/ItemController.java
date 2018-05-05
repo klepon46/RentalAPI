@@ -1,9 +1,11 @@
 package com.rental.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rental.model.Item;
@@ -26,35 +27,63 @@ public class ItemController {
 
 	@GetMapping(value = "/")
 	public ResponseEntity<List<Item>> getAllItems() {
-		List<Item> items = itemRepository.findAll();
-		ResponseEntity<List<Item>> response = new ResponseEntity<List<Item>>(items, HttpStatus.OK);
+		ResponseEntity<List<Item>> response = null;
+		Optional<List<Item>> items = Optional.of(itemRepository.findAll());
+		if (items.isPresent()) {
+			response = new ResponseEntity<List<Item>>(items.get(), HttpStatus.OK);
+		} else {
+			response = new ResponseEntity<List<Item>>(new ArrayList<Item>(), HttpStatus.OK);
+		}
 
 		return response;
 	}
 
 	@GetMapping(value = "/{itemId}")
 	public ResponseEntity<Item> getItemById(@PathVariable("itemId") int itemId) {
+		ResponseEntity<Item> response = null;
 		Optional<Item> item = itemRepository.findById(itemId);
-		ResponseEntity<Item> response = new ResponseEntity<Item>(item.get(), HttpStatus.OK);
+		if (item.isPresent()) {
+			response = new ResponseEntity<Item>(item.get(), HttpStatus.OK);
+		} else {
+			response = new ResponseEntity<Item>(new Item(), HttpStatus.OK);
+		}
 
 		return response;
 	}
 
 	@GetMapping(value = "/category/{categoryName}")
 	public ResponseEntity<List<Item>> getItemsByCategory(@PathVariable("categoryName") String categoryName) {
-		List<Item> items = itemRepository.findByCategory(categoryName);
-		ResponseEntity<List<Item>> response = new ResponseEntity<List<Item>>(items, HttpStatus.OK);
+		ResponseEntity<List<Item>> response = null;
+
+		Optional<List<Item>> items = itemRepository.findByCategory(categoryName);
+		if (items.isPresent()) {
+			response = new ResponseEntity<List<Item>>(items.get(), HttpStatus.OK);
+		} else {
+			response = new ResponseEntity<List<Item>>(new ArrayList<Item>(), HttpStatus.OK);
+		}
 
 		return response;
 	}
 
 	@PostMapping(value = "/{userId}/createitem", consumes = "application/json")
-	public ResponseEntity<Void> addUserItem(@PathVariable("userId") int userId, @RequestBody Item item) {
-		Optional<List<Item>> optItems = itemRepository.findByUserId(userId);
-		item.setUserId(userId);
+	public ResponseEntity<String> addUserItem(@PathVariable("userId") int userId, @RequestBody Item item) {
+		ResponseEntity<String> response = null;
 
-		optItems.ifPresent(x -> itemRepository.save(item));
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		Optional<List<Item>> optItems = itemRepository.findByUserId(userId);
+
+		if (optItems.isPresent()) {
+			try {
+				item.setUserId(userId);
+				itemRepository.save(item);
+				response = new ResponseEntity<String>(HttpStatus.OK);
+			} catch (DataIntegrityViolationException e) {
+				response = new ResponseEntity<String>(e.getRootCause().getMessage(), HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			response = new ResponseEntity<String>("User Not Found", HttpStatus.BAD_REQUEST);
+		}
+
+		return response;
 	}
 
 }

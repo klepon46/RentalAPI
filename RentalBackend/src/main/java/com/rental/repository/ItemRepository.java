@@ -12,6 +12,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 	Optional<List<Item>> findByUserId(int userId);
 	
 
-	List<Item> findByCategory(String category);
+	Optional<List<Item>> findByCategory(String category);
 
 }

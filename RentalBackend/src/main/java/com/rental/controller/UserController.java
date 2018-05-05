@@ -1,5 +1,6 @@
 package com.rental.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rental.model.Item;
@@ -32,26 +32,37 @@ public class UserController {
 
 	@GetMapping(value = "/{userId}")
 	public ResponseEntity<User> getUserById(@PathVariable("userId") int userId) {
+
 		Optional<User> user = userRepository.findById(userId);
-		return new ResponseEntity<User>(user.get(), HttpStatus.OK);
+		if (user.isPresent()) {
+			return new ResponseEntity<User>(user.get(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<User>(new User(), HttpStatus.OK);
+		}
+
 	}
 
 	@GetMapping(value = "/{userId}/items")
 	public ResponseEntity<List<Item>> getItemsByUserId(@PathVariable("userId") int userId) {
-		List<Item> items = itemRepository.findByUserId(userId).get();
-		ResponseEntity<List<Item>> response = 
-				new ResponseEntity<List<Item>>(items, HttpStatus.OK);
 
-		return response;
+		Optional<List<Item>> items = itemRepository.findByUserId(userId);
+
+		if (items.isPresent()) {
+			return new ResponseEntity<List<Item>>(items.get(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<List<Item>>(new ArrayList<Item>(), HttpStatus.OK);
+		}
+
 	}
 
 	@PostMapping(value = "/newuser", consumes = "application/json")
-	public ResponseEntity<Void> addUser(@RequestBody User user) {
+	public ResponseEntity<String> addUser(@RequestBody User user) {
 		try {
 			userRepository.save(user);
-			return new ResponseEntity<Void>(HttpStatus.OK);
+			return new ResponseEntity<String>(HttpStatus.OK);
 		} catch (DataIntegrityViolationException e) {
-			return new ResponseEntity<Void>(HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<String>(e.getRootCause().getMessage(), 
+					HttpStatus.BAD_REQUEST);
 		}
 	}
 }
