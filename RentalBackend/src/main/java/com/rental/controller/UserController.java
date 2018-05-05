@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,12 +56,7 @@ public class UserController {
 
 	@PostMapping(value = "/newuser", consumes = "application/json")
 	public ResponseEntity<String> addUser(@RequestBody User user) {
-		try {
-			userRepository.save(user);
-			return new ResponseEntity<String>(HttpStatus.OK);
-		} catch (DataIntegrityViolationException e) {
-			return new ResponseEntity<String>(e.getRootCause().getMessage(), 
-					HttpStatus.BAD_REQUEST);
-		}
+		userRepository.save(user);
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 }

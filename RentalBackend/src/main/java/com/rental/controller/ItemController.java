@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,15 +71,11 @@ public class ItemController {
 		Optional<List<Item>> optItems = itemRepository.findByUserId(userId);
 
 		if (optItems.isPresent()) {
-			try {
-				item.setUserId(userId);
-				itemRepository.save(item);
-				response = new ResponseEntity<String>(HttpStatus.OK);
-			} catch (DataIntegrityViolationException e) {
-				response = new ResponseEntity<String>(e.getRootCause().getMessage(), HttpStatus.BAD_REQUEST);
-			}
+			item.setUserId(userId);
+			itemRepository.save(item);
+			response = new ResponseEntity<String>(HttpStatus.OK);
 		} else {
-			response = new ResponseEntity<String>("User Not Found", HttpStatus.BAD_REQUEST);
+			response = new ResponseEntity<String>("User Not Found", HttpStatus.INTERNAL_SERVER_ERROR	);
 		}
 
 		return response;

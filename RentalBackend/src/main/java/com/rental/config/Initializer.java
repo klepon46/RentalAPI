@@ -1,5 +1,7 @@
 package com.rental.config;
 
+import javax.servlet.ServletRegistration.Dynamic;
+
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class Initializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -19,4 +21,10 @@ public class Initializer extends AbstractAnnotationConfigDispatcherServletInitia
 		return new String[] { "/info/*" };
 	}
 
+	@Override
+	protected void customizeRegistration(Dynamic registration) {
+		boolean done = registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+		if (!done)
+			throw new RuntimeException();
+	}
 }
